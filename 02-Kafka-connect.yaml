@@ -1,0 +1,72 @@
+apiVersion: kafka.strimzi.io/v1beta2
+kind: KafkaConnect
+metadata:
+  name: my-connect-cluster
+  annotations:
+    strimzi.io/use-connector-resources: "true"  
+spec:
+  version: 3.4.0
+  config:
+    group.id: connect-cluster
+    offset.storage.topic: connect-cluster-offsets
+    config.storage.topic: connect-cluster-configs
+    status.storage.topic: connect-cluster-status
+    config.storage.replication.factor: -1
+    offset.storage.replication.factor: -1
+    status.storage.replication.factor: -1
+    jmxhost: 0.0.0.0
+    jmxport: 9999
+  bootstrapServers: 'event-broker-dr-kafka-bootstrap.appdev-dbz.svc:9092'
+  build:
+    output:
+      type: imagestream
+      image: debezium-connect-oracle:latest
+    plugins:
+      - name: debezium-connector-oracle
+        artifacts:
+          - type: zip
+            url: https://maven.repository.redhat.com/ga/io/debezium/debezium-connector-oracle/2.1.4.Final-redhat-00001/debezium-connector-oracle-2.1.4.Final-redhat-00001-plugin.zip
+          - type: zip
+            url: https://maven.repository.redhat.com/ga/io/debezium/debezium-scripting/2.1.4.Final-redhat-00001/debezium-scripting-2.1.4.Final-redhat-00001.zip
+          - type: jar
+            url: https://repo1.maven.org/maven2/com/oracle/database/jdbc/ojdbc8/21.1.0.0/ojdbc8-21.1.0.0.jar
+  metricsConfig:
+    type: jmxPrometheusExporter
+    valueFrom:
+      configMapKeyRef:
+        name: debezium-metrics
+        key: debezium-metrics-config.yml
+  replicas: 1
+---
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: debezium-metrics
+  labels:
+    app: strimzi
+data:
+  debezium-metrics-config.yml: |
+    startDelaySeconds: 0
+    ssl: false
+    lowercaseOutputName: false
+    lowercaseOutputLabelNames: false
+    rules:
+    - pattern : "kafka.connect<type=connect-worker-metrics>([^:]+):"
+      name: "kafka_connect_worker_metrics_$1"
+    - pattern : "kafka.connect<type=connect-metrics, client-id=([^:]+)><>([^:]+)"
+      name: "kafka_connect_metrics_$2"
+      labels:
+        client: "$1"
+    - pattern: "debezium.([^:]+)<type=connector-metrics, context=([^,]+), server=([^,]+), key=([^>]+)><>RowsScanned"
+      name: "debezium_metrics_RowsScanned"
+      labels:
+        plugin: "$1"
+        name: "$3"
+        context: "$2"
+        table: "$4"
+    - pattern: "debezium.([^:]+)<type=connector-metrics, context=([^,]+), server=([^>]+)>([^:]+)"
+      name: "debezium_metrics_$4"
+      labels:
+        plugin: "$1"
+        name: "$3"
+        context: "$2"
