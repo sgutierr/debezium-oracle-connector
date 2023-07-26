@@ -1,33 +1,28 @@
-./bin/kafka-console-consumer.sh --bootstrap-server event-broker-dr-kafka-bootstrap.appdev-dbz.svc:9092 --topic inventory-connector-oracle.C__DBZUSER.CUSTOMERS
+TESTING COMMANDS USED
 
+./bin/kafka-console-consumer.sh --bootstrap-server event-broker-dr-kafka-bootstrap.appdev-dbz.svc:9092 --topic inventory-connector-oracle.C__DBZUSER.CUSTOMERS
 ./bin/kafka-topics.sh --bootstrap-server event-broker-dr-kafka-bootstrap.appdev-dbz.svc:9092 --describe inventory-connector-oracle.C__DBZUSER.CUSTOMERS
 
 database.pdb.name: ORCLPDB1
 
 INSERT INTO customers1 VALUES (1005, 'Peter Shoe','Castefa');
-
-
-
-
-
-
 update customers1 set city = 'Rio' where id=1008;
-
 INSERT INTO customers1 VALUES (1006, 'Anders Rio','Monaco');
 INSERT INTO customers1 VALUES (1007, 'Johan Torp','Zamora');
-
 INSERT INTO customers1 VALUES (1009, 'Leo Messi','Barcelona');
 update customers1 set name = 'Peter Shoes' where id=1009;
 update customers1 set city= 'Girona' where id=1009;
-
-
-
-
 INSERT INTO customers1 VALUES (1010, 'Leo Messi','Barcelona');
 update customers1 set name = 'Peter Shoes' where id=1010;
 update customers1 set city= 'Girona' where id=1010;
-
+commit;
 
 nc -vz 2.tcp.eu.ngrok.io 17328
 
-/connector-plugins/customer-connector-oracle/config/validate
+*** Podman commands***
+docker run --name dbOracle193 -p 1521:1521 -p 5500:5500 -e ORACLE_PWD=dadas34sd -e ORACLE_SID=ORCLCDB oracle/database:19.3.0-ee
+sudo docker start dbOracle193
+docker exec -it dbOracle193 /bin/bash
+*** SQLPlus ***
+sqlplus sys/helloworldndo@//localhost:1521/ORCLCDB as sysdba
+sqlplus c##dbzuser/dbz@//localhost:1521/ORCLCDB
