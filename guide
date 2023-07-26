@@ -1,0 +1,33 @@
+./bin/kafka-console-consumer.sh --bootstrap-server event-broker-dr-kafka-bootstrap.appdev-dbz.svc:9092 --topic inventory-connector-oracle.C__DBZUSER.CUSTOMERS
+
+./bin/kafka-topics.sh --bootstrap-server event-broker-dr-kafka-bootstrap.appdev-dbz.svc:9092 --describe inventory-connector-oracle.C__DBZUSER.CUSTOMERS
+
+database.pdb.name: ORCLPDB1
+
+INSERT INTO customers1 VALUES (1005, 'Peter Shoe','Castefa');
+
+
+
+
+
+
+update customers1 set city = 'Rio' where id=1008;
+
+INSERT INTO customers1 VALUES (1006, 'Anders Rio','Monaco');
+INSERT INTO customers1 VALUES (1007, 'Johan Torp','Zamora');
+
+INSERT INTO customers1 VALUES (1009, 'Leo Messi','Barcelona');
+update customers1 set name = 'Peter Shoes' where id=1009;
+update customers1 set city= 'Girona' where id=1009;
+
+
+
+
+INSERT INTO customers1 VALUES (1010, 'Leo Messi','Barcelona');
+update customers1 set name = 'Peter Shoes' where id=1010;
+update customers1 set city= 'Girona' where id=1010;
+
+
+nc -vz 2.tcp.eu.ngrok.io 17328
+
+/connector-plugins/customer-connector-oracle/config/validate
